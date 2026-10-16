@@ -451,8 +451,8 @@ def analytics():
 
 @app.route('/about')
 def about():
-    art = load_artifacts()
-    return render_template('about.html', total_records=art.get('total_records', 6607))
+    return redirect(url_for('index'))
+
 
 @app.route('/api/predict', methods=['POST'])
 def api_predict():
