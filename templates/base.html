@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Student Academic Performance Prediction System{% endblock %} - UM Research</title>
+    <title>{% block title %}Student Academic Performance Prediction System{% endblock %} - EduPredict</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -52,9 +52,9 @@
                     <div>
                         <div class="font-extrabold text-lg text-slate-900 tracking-tight leading-tight flex items-center gap-2">
                             EduPredict ML
-                            <span class="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200">Research</span>
+                            <span class="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">Production</span>
                         </div>
-                        <p class="text-xs text-slate-500 font-medium hidden sm:block">Decision Tree & Random Forest Academic Predictor</p>
+                        <p class="text-xs text-slate-500 font-medium hidden sm:block">Student Academic Performance Prediction System</p>
                     </div>
                 </a>
 
@@ -132,30 +132,30 @@
             <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                 <div class="flex items-center space-x-3">
                     <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">
-                        UM
+                        EP
                     </div>
                     <div>
                         <p class="text-xs font-semibold text-slate-800">
-                            Predicting Student Academic Performance Using Decision Tree & Random Forest
+                            Student Academic Performance Prediction System
                         </p>
                         <p class="text-[11px] text-slate-500">
-                            Authors: Norjeane P. Centino & Rouge P. L. Saludes • University of Mindanao, Matina, Davao City
+                            Early Academic Warning & Decision Support Machine Learning Platform
                         </p>
                     </div>
                 </div>
 
                 <div class="flex items-center space-x-6 text-xs text-slate-500 font-medium">
-                    <span>Dataset: Kaggle (lainguyn123, 6,607 records)</span>
+                    <span>Evaluates 19 Multivariate Factors</span>
                     <span class="hidden sm:inline">•</span>
                     <a href="{{ url_for('analytics') }}" class="hover:text-indigo-600 transition-colors">Model Evaluation & Metrics</a>
                     <span class="hidden sm:inline">•</span>
                     <span class="inline-flex items-center gap-1 text-slate-700 font-semibold">
-                        <i class="fa-solid fa-cloud-arrow-up text-indigo-500"></i> Railway Deployable
+                        <i class="fa-solid fa-cloud-arrow-up text-indigo-500"></i> Railway Hosted
                     </span>
                 </div>
             </div>
             <div class="mt-4 pt-4 border-t border-slate-100 text-center text-[11px] text-slate-400">
-                Decision support system for educational data mining and early academic intervention. Designed to assist educators, not replace teacher judgment.
+                Decision support system for educational data mining and early academic intervention. Designed to assist educators in identifying student support needs.
             </div>
         </div>
     </footer>

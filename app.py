@@ -97,7 +97,7 @@ def generate_interventions(student_data, predicted_level, rf_probs):
             'badge': 'Urgent',
             'badge_color': 'bg-rose-100 text-rose-800 border-rose-300',
             'icon': 'fa-triangle-exclamation',
-            'detail': f'Current attendance is {attendance:.1f}% (critical threshold < 75%). Attendance was determined to be the #1 most influential predictor of academic performance in the study. Establish immediate attendance monitoring and conduct a parent-counselor check-in.'
+            'detail': f'Current attendance is {attendance:.1f}% (critical threshold < 75%). Attendance is the #1 most influential predictor of academic performance in the model. Establish immediate attendance monitoring and conduct an advisor check-in.'
         })
     elif attendance < 85:
         interventions.append({
