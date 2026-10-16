@@ -3,7 +3,8 @@ FROM python:3.11-slim
 WORKDIR /app
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PORT=8080
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -17,4 +18,6 @@ COPY . .
 # Pre-train models during image build
 RUN python train_models.py
 
-CMD ["gunicorn", "app:app"]
+EXPOSE 8080
+
+CMD ["gunicorn", "-c", "gunicorn.conf.py", "app:app"]
