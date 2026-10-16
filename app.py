@@ -23,19 +23,30 @@ artifacts = None
 def load_artifacts():
     global artifacts
     if artifacts is None:
-        if not os.path.exists(ARTIFACTS_PATH):
-            print("Model artifacts not found. Initiating training pipeline...")
+        loaded = False
+        if os.path.exists(ARTIFACTS_PATH):
+            try:
+                with open(ARTIFACTS_PATH, 'rb') as f:
+                    artifacts = pickle.load(f)
+                print("Model artifacts successfully loaded from disk.")
+                loaded = True
+            except Exception as e:
+                print(f"Warning: Cached model artifacts incompatible with environment ({e}). Retraining...")
+                loaded = False
+
+        if not loaded:
+            print("Running training pipeline in current environment...")
             from train_models import train_and_save
             artifacts = train_and_save()
-        else:
-            with open(ARTIFACTS_PATH, 'rb') as f:
-                artifacts = pickle.load(f)
-            print("Model artifacts successfully loaded from disk.")
     return artifacts
 
-# Initialize artifacts on startup
-with app.app_context():
-    load_artifacts()
+# Initialize artifacts safely on startup without crashing worker imports
+try:
+    with app.app_context():
+        load_artifacts()
+except Exception as e:
+    print(f"Startup notice: Deferred artifact loading ({e})")
+
 
 def preprocess_input(records_df):
     """
