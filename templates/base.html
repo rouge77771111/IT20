@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Student Academic Performance Prediction System{% endblock %} - UM Research</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Brand / Logo -->
+                <a href="{{ url_for('index') }}" class="flex items-center space-x-3 group">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-md shadow-indigo-200 group-hover:scale-105 transition-transform">
+                        <i class="fa-solid fa-graduation-cap text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="font-extrabold text-lg text-slate-900 tracking-tight leading-tight flex items-center gap-2">
+                            EduPredict ML
+                            <span class="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200">Research</span>
+                        </div>
+                        <p class="text-xs text-slate-500 font-medium hidden sm:block">Decision Tree & Random Forest Academic Predictor</p>
+                    </div>
+                </a>
+
+                <!-- Navigation Links -->
+                <nav class="hidden md:flex items-center space-x-1 lg:space-x-2">
+                    <a href="{{ url_for('index') }}" class="px-3 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 {% if request.path == '/' %}bg-indigo-50 text-indigo-700 border border-indigo-200{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-100{% endif %}">
+                        <i class="fa-solid fa-user-check text-xs"></i>
+                        <span>Individual Predictor</span>
+                    </a>
+                    <a href="{{ url_for('batch') }}" class="px-3 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 {% if request.path == '/batch' %}bg-indigo-50 text-indigo-700 border border-indigo-200{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-100{% endif %}">
+                        <i class="fa-solid fa-file-csv text-xs"></i>
+                        <span>Batch Upload</span>
+                    </a>
+                    <a href="{{ url_for('analytics') }}" class="px-3 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 {% if request.path == '/analytics' %}bg-indigo-50 text-indigo-700 border border-indigo-200{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-100{% endif %}">
+                        <i class="fa-solid fa-chart-line text-xs"></i>
+                        <span>Model Analytics</span>
+                    </a>
+                    <a href="{{ url_for('about') }}" class="px-3 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 {% if request.path == '/about' %}bg-indigo-50 text-indigo-700 border border-indigo-200{% else %}text-slate-600 hover:text-slate-900 hover:bg-slate-100{% endif %}">
+                        <i class="fa-solid fa-book-bookmark text-xs"></i>
+                        <span>Paper & Study</span>
+                    </a>
+                </nav>
+
+                <!-- University / Status Badge -->
+                <div class="flex items-center space-x-3">
+                    <div class="hidden lg:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>Railway Ready • 82.2% Acc</span>
+                    </div>
+                    <a href="https://railway.app" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-sm transition-all">
+                        <i class="fa-solid fa-train text-violet-400"></i>
+                        <span>Railway</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Nav bar -->
+        <div class="md:hidden border-t border-slate-200 bg-slate-50 px-4 py-2 flex justify-around text-xs font-semibold">
+            <a href="{{ url_for('index') }}" class="flex flex-col items-center py-1 {% if request.path == '/' %}text-indigo-600 font-bold{% else %}text-slate-600{% endif %}">
+                <i class="fa-solid fa-user-check mb-1"></i> Predict
+            </a>
+            <a href="{{ url_for('batch') }}" class="flex flex-col items-center py-1 {% if request.path == '/batch' %}text-indigo-600 font-bold{% else %}text-slate-600{% endif %}">
+                <i class="fa-solid fa-file-csv mb-1"></i> Batch
+            </a>
+            <a href="{{ url_for('analytics') }}" class="flex flex-col items-center py-1 {% if request.path == '/analytics' %}text-indigo-600 font-bold{% else %}text-slate-600{% endif %}">
+                <i class="fa-solid fa-chart-line mb-1"></i> Analytics
+            </a>
+            <a href="{{ url_for('about') }}" class="flex flex-col items-center py-1 {% if request.path == '/about' %}text-indigo-600 font-bold{% else %}text-slate-600{% endif %}">
+                <i class="fa-solid fa-book-bookmark mb-1"></i> Paper
+            </a>
+        </div>
+    </header>
+
+    <!-- Flash message alerts -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 w-full">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="p-4 mb-4 rounded-xl border flex items-center justify-between {% if category == 'danger' %}bg-rose-50 border-rose-200 text-rose-800{% elif category == 'warning' %}bg-amber-50 border-amber-200 text-amber-800{% elif category == 'success' %}bg-emerald-50 border-emerald-200 text-emerald-800{% else %}bg-indigo-50 border-indigo-200 text-indigo-800{% endif %}">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid {% if category == 'danger' %}fa-circle-xmark{% elif category == 'warning' %}fa-triangle-exclamation{% elif category == 'success' %}fa-circle-check{% else %}fa-circle-info{% endif %}"></i>
+                            <span class="text-sm font-medium">{{ message }}</span>
+                        </div>
+                        <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-700">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content Block -->
+    <main class="flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-16 py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-xs">
+                        UM
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-slate-800">
+                            Predicting Student Academic Performance Using Decision Tree & Random Forest
+                        </p>
+                        <p class="text-[11px] text-slate-500">
+                            Authors: Norjeane P. Centino & Rouge P. L. Saludes • University of Mindanao, Matina, Davao City
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-6 text-xs text-slate-500 font-medium">
+                    <span>Dataset: Kaggle (lainguyn123, 6,607 records)</span>
+                    <span class="hidden sm:inline">•</span>
+                    <a href="{{ url_for('about') }}" class="hover:text-indigo-600 transition-colors">Methodology</a>
+                    <span class="hidden sm:inline">•</span>
+                    <a href="{{ url_for('analytics') }}" class="hover:text-indigo-600 transition-colors">Evaluation Metrics</a>
+                    <span class="hidden sm:inline">•</span>
+                    <span class="inline-flex items-center gap-1 text-slate-700 font-semibold">
+                        <i class="fa-solid fa-cloud-arrow-up text-indigo-500"></i> Railway Deployable
+                    </span>
+                </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-slate-100 text-center text-[11px] text-slate-400">
+                Decision support system for educational data mining and early academic intervention. Designed to assist educators, not replace teacher judgment.
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

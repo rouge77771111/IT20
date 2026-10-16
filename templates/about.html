@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block title %}About the Research Study - Centino & Saludes{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Paper Header Card -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-10 mb-8">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-semibold mb-4">
+            <i class="fa-solid fa-graduation-cap"></i> Academic Research Paper
+        </div>
+
+        <h1 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight mb-4">
+            Predicting Student Academic Performance Using Decision Tree and Random Forest Machine Learning Models
+        </h1>
+
+        <!-- Authors & Institution -->
+        <div class="flex flex-wrap items-center gap-6 text-sm text-slate-600 border-t border-b border-slate-100 py-4 mb-6">
+            <div>
+                <span class="block text-slate-400 text-xs uppercase font-bold">Authors</span>
+                <span class="font-bold text-slate-900">Norjeane P. Centino & Rouge P. L. Saludes</span>
+            </div>
+            <div>
+                <span class="block text-slate-400 text-xs uppercase font-bold">Institution</span>
+                <span class="font-medium text-slate-800">University of Mindanao, Matina, Davao City, Philippines</span>
+            </div>
+            <div>
+                <span class="block text-slate-400 text-xs uppercase font-bold">Dataset Size</span>
+                <span class="font-medium text-slate-800">6,607 Student Records (20 Variables)</span>
+            </div>
+        </div>
+
+        <!-- Abstract / Problem Description -->
+        <div class="prose prose-slate max-w-none text-slate-700 text-sm leading-relaxed space-y-4">
+            <h2 class="text-lg font-bold text-slate-900">1. Introduction & Problem Description</h2>
+            <p>
+                Student academic performance is an important concern in educational institutions because it reflects how well students are progressing in their studies. Teachers and academic staff regularly monitor grades, attendance, participation, and other indicators to determine whether students are meeting expected learning outcomes. However, evaluating these multivariate factors for a large number of students simultaneously can become challenging.
+            </p>
+            <p>
+                Academic performance is not determined by a single factor. Previous examination scores, class attendance, study habits, access to learning resources, tutoring sessions, parental involvement, and lifestyle conditions all interact. In this study, student academic performance is framed as a <strong>three-level classification problem</strong>: <em>Low (55–64)</em>, <em>Medium (65–69)</em>, and <em>High (70–101)</em>.
+            </p>
+            <div class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs leading-relaxed">
+                <strong>Core System Principle:</strong> The purpose of the proposed machine learning system is <em>not</em> to replace teachers or make automated academic verdicts. Instead, the prediction results provide objective decision support so educators can identify at-risk students early and deliver timely interventions.
+            </div>
+        </div>
+    </div>
+
+    <!-- Objectives & Methodology -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+
+        <!-- Objectives -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+            <div class="flex items-center space-x-2 text-indigo-600 font-bold text-xs uppercase tracking-wider mb-3">
+                <i class="fa-solid fa-bullseye"></i> Research Objectives
+            </div>
+            <h3 class="text-base font-bold text-slate-900 mb-3">Project Goals</h3>
+            <ul class="text-xs text-slate-600 space-y-3 leading-relaxed">
+                <li class="flex items-start gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5"></span>
+                    <span><strong>General Objective:</strong> Develop an ML system to predict student performance by analyzing educational factors using Decision Tree and Random Forest models and compare their predictive capabilities.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5"></span>
+                    <span>Preprocess the Kaggle student dataset by resolving missing values with mode imputation and one-hot encoding.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5"></span>
+                    <span>Train baseline Decision Tree (Gini criterion) and Random Forest (200 trees) classifiers with stratified 80/20 train-test splits.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5"></span>
+                    <span>Evaluate models using accuracy, weighted precision, recall, F1-scores, and confusion matrices.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 mt-1.5"></span>
+                    <span>Deploy an interactive system to support early academic intervention.</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Technical Pipeline -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+            <div class="flex items-center space-x-2 text-indigo-600 font-bold text-xs uppercase tracking-wider mb-3">
+                <i class="fa-solid fa-diagram-project"></i> Methodology Pipeline
+            </div>
+            <h3 class="text-base font-bold text-slate-900 mb-3">Figure 1 Workflow</h3>
+            <div class="space-y-2 text-xs">
+                <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center gap-3">
+                    <span class="w-5 h-5 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-[10px]">1</span>
+                    <span class="font-medium text-slate-800">Dataset Collection (Kaggle Student Performance Factors)</span>
+                </div>
+                <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center gap-3">
+                    <span class="w-5 h-5 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-[10px]">2</span>
+                    <span class="font-medium text-slate-800">Data Preprocessing & Mode Imputation (3 missing cols)</span>
+                </div>
+                <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center gap-3">
+                    <span class="w-5 h-5 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-[10px]">3</span>
+                    <span class="font-medium text-slate-800">Target Creation (Low: 55-64, Med: 65-69, High: 70-101)</span>
+                </div>
+                <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center gap-3">
+                    <span class="w-5 h-5 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-[10px]">4</span>
+                    <span class="font-medium text-slate-800">Categorical One-Hot Encoding & Stratified 80/20 Split</span>
+                </div>
+                <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center gap-3">
+                    <span class="w-5 h-5 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-[10px]">5</span>
+                    <span class="font-medium text-slate-800">Model Training: Decision Tree vs Random Forest (200 trees)</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- References & Citations -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+        <h3 class="text-base font-bold text-slate-900 mb-4">Paper References & Literature</h3>
+        <ol class="list-decimal list-inside text-xs text-slate-600 space-y-2 leading-relaxed font-mono">
+            <li>Chaka, C. (2022). Educational data mining, student academic performance prediction, prediction methods, algorithms and tools: An overview of reviews. <em>Journal of E-Learning and Knowledge Society</em>, 18(2), 58–69.</li>
+            <li>Alwarthan, S. A. (2022). Predicting student academic performance at higher education using data mining: A systematic review. <em>Applied Computational Intelligence and Soft Computing</em>.</li>
+            <li>Yağcı, M. (2022). Educational data mining: Prediction of students' academic performance using machine learning algorithms. <em>Smart Learning Environments</em>, 9, Article 11.</li>
+            <li>Alalawi, K., Athauda, R., & Chiong, R. (2023). Contextualizing the current state of research on the use of machine learning for student performance prediction: A systematic literature review. <em>Engineering Reports</em>, 5(12).</li>
+            <li>Bin Roslan, M. H., & Chen, C. J. (2022). Educational data mining for student performance prediction: A systematic literature review (2015–2021). <em>International Journal of Emerging Technologies in Learning</em>.</li>
+            <li>lainguyn123. Student performance factors dataset. <em>Kaggle</em>.</li>
+            <li>Pedregosa, F., et al. (2011). Scikit-learn: Machine learning in Python. <em>Journal of Machine Learning Research</em>, 12, 2825–2830.</li>
+        </ol>
+    </div>
+
+</div>
+{% endblock %}

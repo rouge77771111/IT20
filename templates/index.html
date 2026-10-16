@@ -1,0 +1,590 @@
+{% extends "base.html" %}
+
+{% block title %}Predict Academic Performance - Decision Tree & Random Forest{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Header Section -->
+    <div class="mb-8">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-semibold mb-2">
+                    <i class="fa-solid fa-flask"></i> University of Mindanao Research Project
+                </div>
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Student Academic Performance Predictor</h1>
+                <p class="text-sm text-slate-600 mt-1 max-w-3xl">
+                    Early academic intervention system based on the research paper by <strong>Norjeane P. Centino & Rouge P. L. Saludes</strong>. Evaluates 19 multivariate academic, behavioral, and environmental indicators to predict performance levels (Low, Medium, High).
+                </p>
+            </div>
+
+            <!-- Quick Presets -->
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="text-xs text-slate-500 font-semibold mr-1">Quick Presets:</span>
+                <button type="button" onclick="loadPreset('high')" class="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-semibold transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-star text-emerald-500"></i> High Achiever
+                </button>
+                <button type="button" onclick="loadPreset('medium')" class="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-xs font-semibold transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-notch text-amber-500"></i> Average Student
+                </button>
+                <button type="button" onclick="loadPreset('low')" class="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-triangle-exclamation text-rose-500"></i> At-Risk Student
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Grid: Form (Left) & Results/Insights (Right) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+        <!-- Form Column (7 cols) -->
+        <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-sliders"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-slate-900">Student Profile Assessment</h2>
+                        <p class="text-xs text-slate-500">Enter the 19 student factors evaluated in the research dataset</p>
+                    </div>
+                </div>
+
+                <button type="button" onclick="resetForm()" class="text-xs text-slate-500 hover:text-indigo-600 flex items-center gap-1">
+                    <i class="fa-solid fa-rotate-left"></i> Reset Defaults
+                </button>
+            </div>
+
+            <form action="{{ url_for('predict') }}" method="POST" id="predictionForm" class="space-y-6">
+
+                <!-- 1. Academic Factors (Highest Feature Importance) -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">1. Core Academic Indicators (Highest Impact)</h3>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Attendance -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                                <span>Attendance (%) <span class="text-indigo-600 font-bold">• #1 Feature (25.6%)</span></span>
+                                <span class="text-[11px] text-slate-500" id="att_val">80%</span>
+                            </label>
+                            <input type="number" name="Attendance" id="Attendance" min="60" max="100" step="1"
+                                   value="{{ form_values.Attendance if form_values else 80 }}"
+                                   class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                   required>
+                            <span class="text-[10px] text-slate-400">Dataset range: 60% – 100% (Mean: ~80%)</span>
+                        </div>
+
+                        <!-- Hours Studied -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                                <span>Hours Studied / Week <span class="text-indigo-600 font-bold">• #2 Feature (16.5%)</span></span>
+                                <span class="text-[11px] text-slate-500" id="hours_val">20 hrs</span>
+                            </label>
+                            <input type="number" name="Hours_Studied" id="Hours_Studied" min="1" max="44" step="1"
+                                   value="{{ form_values.Hours_Studied if form_values else 20 }}"
+                                   class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                   required>
+                            <span class="text-[10px] text-slate-400">Dataset range: 1 – 44 hrs (Mean: ~20 hrs)</span>
+                        </div>
+
+                        <!-- Previous Scores -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                                <span>Previous Exam Scores <span class="text-indigo-600 font-bold">• #3 Feature (8.1%)</span></span>
+                            </label>
+                            <input type="number" name="Previous_Scores" id="Previous_Scores" min="50" max="100" step="1"
+                                   value="{{ form_values.Previous_Scores if form_values else 75 }}"
+                                   class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                   required>
+                            <span class="text-[10px] text-slate-400">Previous grades range: 50 – 100</span>
+                        </div>
+
+                        <!-- Tutoring Sessions -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">
+                                Tutoring Sessions / Month <span class="text-indigo-600 font-bold">• #4 Feature (4.1%)</span>
+                            </label>
+                            <input type="number" name="Tutoring_Sessions" id="Tutoring_Sessions" min="0" max="8" step="1"
+                                   value="{{ form_values.Tutoring_Sessions if form_values else 1 }}"
+                                   class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                   required>
+                            <span class="text-[10px] text-slate-400">Dataset range: 0 – 8 sessions</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Behavioral & Lifestyle Factors -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-2 h-2 rounded-full bg-violet-500"></span>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">2. Behavioral & Lifestyle Indicators</h3>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Sleep Hours / Night</label>
+                            <input type="number" name="Sleep_Hours" id="Sleep_Hours" min="4" max="10" step="1"
+                                   value="{{ form_values.Sleep_Hours if form_values else 7 }}"
+                                   class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 text-sm" required>
+                            <span class="text-[10px] text-slate-400">Range: 4 – 10 hrs</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Physical Activity (hrs/wk)</label>
+                            <input type="number" name="Physical_Activity" id="Physical_Activity" min="0" max="6" step="1"
+                                   value="{{ form_values.Physical_Activity if form_values else 3 }}"
+                                   class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 text-sm" required>
+                            <span class="text-[10px] text-slate-400">Range: 0 – 6 hrs</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Motivation Level</label>
+                            <select name="Motivation_Level" id="Motivation_Level" class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 text-sm">
+                                {% for opt in categorical_options['Motivation_Level'] %}
+                                    <option value="{{ opt }}" {% if form_values and form_values.Motivation_Level == opt or (not form_values and opt == 'Medium') %}selected{% endif %}>{{ opt }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Family & Socioeconomic Background -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">3. Family & Socioeconomic Environment</h3>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Parental Involvement</label>
+                            <select name="Parental_Involvement" id="Parental_Involvement" class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 text-sm">
+                                {% for opt in categorical_options['Parental_Involvement'] %}
+                                    <option value="{{ opt }}" {% if form_values and form_values.Parental_Involvement == opt or (not form_values and opt == 'Medium') %}selected{% endif %}>{{ opt }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Parental Education Level</label>
+                            <select name="Parental_Education_Level" id="Parental_Education_Level" class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 text-sm">
+                                {% for opt in categorical_options['Parental_Education_Level'] %}
+                                    <option value="{{ opt }}" {% if form_values and form_values.Parental_Education_Level == opt or (not form_values and opt == 'High School') %}selected{% endif %}>{{ opt }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Family Income Level</label>
+                            <select name="Family_Income" id="Family_Income" class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 text-sm">
+                                {% for opt in categorical_options['Family_Income'] %}
+                                    <option value="{{ opt }}" {% if form_values and form_values.Family_Income == opt or (not form_values and opt == 'Medium') %}selected{% endif %}>{{ opt }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Distance from Home</label>
+                            <select name="Distance_from_Home" id="Distance_from_Home" class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 text-sm">
+                                {% for opt in categorical_options['Distance_from_Home'] %}
+                                    <option value="{{ opt }}" {% if form_values and form_values.Distance_from_Home == opt or (not form_values and opt == 'Near') %}selected{% endif %}>{{ opt }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. School, Resources & Demographics -->
+                <div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">4. School Resources & Demographics</h3>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Teacher Quality</label>
+                            <select name="Teacher_Quality" id="Teacher_Quality" class="w-full px-2.5 py-2 rounded-xl border border-slate-300 text-xs">
+                                {% for opt in categorical_options['Teacher_Quality'] %}
+                                    <option value="{{ opt }}" {% if form_values and form_values.Teacher_Quality == opt or (not form_values and opt == 'Medium') %}selected{% endif %}>{{ opt }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Access to Resources</label>
+                            <select name="Access_to_Resources" id="Access_to_Resources" class="w-full px-2.5 py-2 rounded-xl border border-slate-300 text-xs">
+                                {% for opt in categorical_options['Access_to_Resources'] %}
+                                    <option value="{{ opt }}" {% if form_values and form_values.Access_to_Resources == opt or (not form_values and opt == 'Medium') %}selected{% endif %}>{{ opt }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Peer Influence</label>
+                            <select name="Peer_Influence" id="Peer_Influence" class="w-full px-2.5 py-2 rounded-xl border border-slate-300 text-xs">
+                                {% for opt in categorical_options['Peer_Influence'] %}
+                                    <option value="{{ opt }}" {% if form_values and form_values.Peer_Influence == opt or (not form_values and opt == 'Neutral') %}selected{% endif %}>{{ opt }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Internet Access</label>
+                            <select name="Internet_Access" id="Internet_Access" class="w-full px-2.5 py-2 rounded-xl border border-slate-300 text-xs">
+                                {% for opt in categorical_options['Internet_Access'] %}
+                                    <option value="{{ opt }}" {% if form_values and form_values.Internet_Access == opt or (not form_values and opt == 'Yes') %}selected{% endif %}>{{ opt }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Extracurricular</label>
+                            <select name="Extracurricular_Activities" id="Extracurricular_Activities" class="w-full px-2.5 py-2 rounded-xl border border-slate-300 text-xs">
+                                {% for opt in categorical_options['Extracurricular_Activities'] %}
+                                    <option value="{{ opt }}" {% if form_values and form_values.Extracurricular_Activities == opt or (not form_values and opt == 'No') %}selected{% endif %}>{{ opt }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Learning Disabilities</label>
+                            <select name="Learning_Disabilities" id="Learning_Disabilities" class="w-full px-2.5 py-2 rounded-xl border border-slate-300 text-xs">
+                                {% for opt in categorical_options['Learning_Disabilities'] %}
+                                    <option value="{{ opt }}" {% if form_values and form_values.Learning_Disabilities == opt or (not form_values and opt == 'No') %}selected{% endif %}>{{ opt }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">School Type</label>
+                            <select name="School_Type" id="School_Type" class="w-full px-2.5 py-2 rounded-xl border border-slate-300 text-xs">
+                                {% for opt in categorical_options['School_Type'] %}
+                                    <option value="{{ opt }}" {% if form_values and form_values.School_Type == opt or (not form_values and opt == 'Public') %}selected{% endif %}>{{ opt }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Gender</label>
+                            <select name="Gender" id="Gender" class="w-full px-2.5 py-2 rounded-xl border border-slate-300 text-xs">
+                                {% for opt in categorical_options['Gender'] %}
+                                    <option value="{{ opt }}" {% if form_values and form_values.Gender == opt or (not form_values and opt == 'Male') %}selected{% endif %}>{{ opt }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Model Selection Choice -->
+                <div class="pt-4 border-t border-slate-100">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Select Machine Learning Model</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <label class="flex items-center gap-3 p-3 rounded-xl border border-indigo-200 bg-indigo-50/50 cursor-pointer hover:bg-indigo-50 transition-colors">
+                            <input type="radio" name="model_choice" value="rf" class="text-indigo-600 focus:ring-indigo-500" {% if not selected_model or selected_model == 'rf' %}checked{% endif %}>
+                            <div>
+                                <div class="text-xs font-bold text-slate-900">Random Forest</div>
+                                <div class="text-[11px] text-indigo-700 font-medium">82.2% Acc (Recommended)</div>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition-colors">
+                            <input type="radio" name="model_choice" value="dt" class="text-indigo-600 focus:ring-indigo-500" {% if selected_model == 'dt' %}checked{% endif %}>
+                            <div>
+                                <div class="text-xs font-bold text-slate-900">Decision Tree</div>
+                                <div class="text-[11px] text-slate-500 font-medium">72.4% Acc (Baseline)</div>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-white cursor-pointer hover:bg-slate-50 transition-colors">
+                            <input type="radio" name="model_choice" value="both" class="text-indigo-600 focus:ring-indigo-500" {% if selected_model == 'both' %}checked{% endif %}>
+                            <div>
+                                <div class="text-xs font-bold text-slate-900">Compare Both</div>
+                                <div class="text-[11px] text-slate-500 font-medium">Side-by-side diagnosis</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <div class="pt-2">
+                    <button type="submit" class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold text-sm shadow-md shadow-indigo-200 hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Predict Academic Performance Level
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Results & Insights Column (5 cols) -->
+        <div class="lg:col-span-5 space-y-6">
+
+            {% if result %}
+                <!-- Prediction Output Card -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-7 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 transform translate-x-4 -translate-y-4 w-32 h-32 bg-indigo-50 rounded-full opacity-50 blur-xl pointer-events-none"></div>
+
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
+                        <div class="flex items-center space-x-2">
+                            <i class="fa-solid fa-chart-pie text-indigo-600"></i>
+                            <h2 class="font-bold text-slate-900 text-sm">Prediction Assessment Result</h2>
+                        </div>
+                        <span class="text-xs px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 font-semibold">
+                            Model: {{ 'Random Forest' if result.model_choice == 'rf' else ('Decision Tree' if result.model_choice == 'dt' else 'Comparison') }}
+                        </span>
+                    </div>
+
+                    <!-- Primary Classification Badge -->
+                    <div class="p-5 rounded-2xl border {{ result.badge.border }} {{ result.badge.bg }} mb-6">
+                        <div class="text-xs font-bold uppercase tracking-wider {{ result.badge.text }} mb-1 flex items-center gap-1.5">
+                            <i class="fa-solid {{ result.badge.icon }}"></i> Predicted Academic Category
+                        </div>
+                        <div class="text-2xl font-black {{ result.badge.text }} tracking-tight">
+                            {{ result.primary_pred }} Performance
+                        </div>
+                        <div class="text-xs {{ result.badge.text }} font-medium mt-1">
+                            {{ result.badge.label }}
+                        </div>
+                    </div>
+
+                    <!-- Probability Breakdown -->
+                    <div class="space-y-3 mb-6">
+                        <div class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center justify-between">
+                            <span>Classification Probability</span>
+                            <span class="text-[11px] text-slate-400 font-normal">Confidence Score</span>
+                        </div>
+
+                        <!-- High Prob -->
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span class="text-emerald-700">High (70–101)</span>
+                                <span class="text-emerald-800">{{ result.rf_probs.get('High', 0) }}%</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                                <div class="bg-emerald-500 h-2.5 rounded-full transition-all duration-500" style="width: {{ result.rf_probs.get('High', 0) }}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Medium Prob -->
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span class="text-amber-700">Medium (65–69)</span>
+                                <span class="text-amber-800">{{ result.rf_probs.get('Medium', 0) }}%</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                                <div class="bg-amber-500 h-2.5 rounded-full transition-all duration-500" style="width: {{ result.rf_probs.get('Medium', 0) }}%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Low Prob -->
+                        <div>
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span class="text-rose-700">Low (55–64, At Risk)</span>
+                                <span class="text-rose-800">{{ result.rf_probs.get('Low', 0) }}%</span>
+                            </div>
+                            <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                                <div class="bg-rose-500 h-2.5 rounded-full transition-all duration-500" style="width: {{ result.rf_probs.get('Low', 0) }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dual Model Comparison View (if selected) -->
+                    {% if result.model_choice == 'both' %}
+                    <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-6">
+                        <div class="text-xs font-bold text-slate-800 mb-3 flex items-center gap-1.5">
+                            <i class="fa-solid fa-code-compare text-indigo-600"></i> Model Consensus Check
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 text-center">
+                            <div class="bg-white p-3 rounded-lg border border-slate-200">
+                                <div class="text-[10px] text-slate-500 font-semibold uppercase">Random Forest</div>
+                                <div class="text-base font-extrabold text-slate-900 mt-0.5">{{ result.rf_pred }}</div>
+                                <div class="text-[10px] text-slate-400">82.2% Test Accuracy</div>
+                            </div>
+                            <div class="bg-white p-3 rounded-lg border border-slate-200">
+                                <div class="text-[10px] text-slate-500 font-semibold uppercase">Decision Tree</div>
+                                <div class="text-base font-extrabold text-slate-900 mt-0.5">{{ result.dt_pred }}</div>
+                                <div class="text-[10px] text-slate-400">72.4% Test Accuracy</div>
+                            </div>
+                        </div>
+                        {% if result.rf_pred != result.dt_pred %}
+                            <p class="text-[11px] text-amber-700 mt-2 bg-amber-50 p-2 rounded border border-amber-200">
+                                <i class="fa-solid fa-circle-exclamation"></i> Models diverge. As demonstrated in Centino & Saludes (Section 4.1), the Random Forest ensemble is more stable against borderline variance.
+                            </p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Early Academic Intervention Recommendations -->
+                    <div class="border-t border-slate-100 pt-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                                <i class="fa-solid fa-clipboard-check text-indigo-600"></i> Actionable Interventions
+                            </h3>
+                            <span class="text-[10px] text-indigo-700 font-semibold bg-indigo-50 px-2 py-0.5 rounded">Educator Advisory</span>
+                        </div>
+
+                        <div class="space-y-2.5">
+                            {% for item in result.interventions %}
+                                <div class="p-3 rounded-xl border bg-slate-50 border-slate-200 hover:bg-white transition-all text-xs">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                                            <i class="fa-solid {{ item.icon }} text-slate-500"></i>
+                                            <span>{{ item.category }}</span>
+                                        </div>
+                                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border {{ item.badge_color }}">{{ item.badge }}</span>
+                                    </div>
+                                    <p class="text-slate-600 leading-relaxed text-[11px]">{{ item.detail }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <!-- Research Paper Findings Overview Card -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-7">
+                    <div class="flex items-center space-x-2 text-indigo-600 font-bold text-xs uppercase tracking-wider mb-2">
+                        <i class="fa-solid fa-lightbulb"></i> Study Findings & Benchmark
+                    </div>
+                    <h2 class="text-xl font-bold text-slate-900 tracking-tight mb-2">Machine Learning in Education</h2>
+                    <p class="text-xs text-slate-600 leading-relaxed mb-5">
+                        This system uses the exact training methodology from the research paper. The dataset comprises <strong>6,607 student records</strong> with 19 predictors.
+                    </p>
+
+                    <!-- Model Comparison Stats Box -->
+                    <div class="grid grid-cols-2 gap-3 mb-6">
+                        <div class="p-3.5 rounded-xl bg-gradient-to-br from-indigo-50 to-white border border-indigo-100">
+                            <div class="text-[10px] uppercase font-bold text-indigo-600">Random Forest</div>
+                            <div class="text-2xl font-black text-indigo-900 mt-1">82.2%</div>
+                            <div class="text-[11px] text-slate-500 mt-0.5">Overall Accuracy</div>
+                            <div class="text-[10px] text-emerald-600 font-semibold mt-1">+9.83% vs Decision Tree</div>
+                        </div>
+
+                        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                            <div class="text-[10px] uppercase font-bold text-slate-600">Decision Tree</div>
+                            <div class="text-2xl font-black text-slate-800 mt-1">72.4%</div>
+                            <div class="text-[11px] text-slate-500 mt-0.5">Baseline Accuracy</div>
+                            <div class="text-[10px] text-slate-500 font-medium mt-1">Single tree classifier</div>
+                        </div>
+                    </div>
+
+                    <!-- Top 3 Drivers -->
+                    <div class="mb-5">
+                        <div class="text-xs font-bold text-slate-800 mb-2 flex items-center justify-between">
+                            <span>Top Predictors of Exam Performance</span>
+                            <a href="{{ url_for('analytics') }}" class="text-[11px] text-indigo-600 hover:underline">Full Chart →</a>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+                                <span class="font-semibold text-slate-800">1. Class Attendance</span>
+                                <span class="font-mono font-bold text-indigo-600">25.6% Importance</span>
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+                                <span class="font-semibold text-slate-800">2. Weekly Study Hours</span>
+                                <span class="font-mono font-bold text-indigo-600">16.5% Importance</span>
+                            </div>
+                            <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+                                <span class="font-semibold text-slate-800">3. Previous Exam Scores</span>
+                                <span class="font-mono font-bold text-indigo-600">8.1% Importance</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-indigo-50 border border-indigo-200 text-[11px] text-indigo-900 leading-relaxed">
+                        <i class="fa-solid fa-quote-left text-indigo-400 mr-1"></i>
+                        The purpose of the proposed system is not to replace teachers or make academic decisions automatically. Instead, the prediction results provide additional information to educators for timely student support.
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Batch Upload Shortcut Card -->
+            <div class="bg-gradient-to-tr from-slate-900 to-indigo-950 text-white rounded-2xl p-6 shadow-sm">
+                <div class="flex items-center space-x-3 mb-3">
+                    <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-indigo-300">
+                        <i class="fa-solid fa-users-viewfinder text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm">Evaluating a Whole Class?</h3>
+                        <p class="text-xs text-slate-300">Upload a CSV file for cohort-wide diagnosis</p>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-300 leading-relaxed mb-4">
+                    Teachers can upload a roster of multiple students to generate instant risk rankings and download an annotated CSV with academic recommendations.
+                </p>
+                <a href="{{ url_for('batch') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shadow-sm">
+                    <i class="fa-solid fa-file-arrow-up"></i> Go to Batch Upload
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Preset loading function
+function loadPreset(type) {
+    if (type === 'high') {
+        document.getElementById('Attendance').value = 95;
+        document.getElementById('Hours_Studied').value = 32;
+        document.getElementById('Previous_Scores').value = 92;
+        document.getElementById('Tutoring_Sessions').value = 2;
+        document.getElementById('Sleep_Hours').value = 8;
+        document.getElementById('Physical_Activity').value = 4;
+        document.getElementById('Motivation_Level').value = 'High';
+        document.getElementById('Parental_Involvement').value = 'High';
+        document.getElementById('Parental_Education_Level').value = 'Postgraduate';
+        document.getElementById('Family_Income').value = 'High';
+        document.getElementById('Access_to_Resources').value = 'High';
+        document.getElementById('Teacher_Quality').value = 'High';
+        document.getElementById('School_Type').value = 'Private';
+        document.getElementById('Peer_Influence').value = 'Positive';
+        document.getElementById('Internet_Access').value = 'Yes';
+        document.getElementById('Extracurricular_Activities').value = 'Yes';
+        document.getElementById('Learning_Disabilities').value = 'No';
+        document.getElementById('Distance_from_Home').value = 'Near';
+    } else if (type === 'medium') {
+        document.getElementById('Attendance').value = 80;
+        document.getElementById('Hours_Studied').value = 20;
+        document.getElementById('Previous_Scores').value = 75;
+        document.getElementById('Tutoring_Sessions').value = 1;
+        document.getElementById('Sleep_Hours').value = 7;
+        document.getElementById('Physical_Activity').value = 3;
+        document.getElementById('Motivation_Level').value = 'Medium';
+        document.getElementById('Parental_Involvement').value = 'Medium';
+        document.getElementById('Parental_Education_Level').value = 'College';
+        document.getElementById('Family_Income').value = 'Medium';
+        document.getElementById('Access_to_Resources').value = 'Medium';
+        document.getElementById('Teacher_Quality').value = 'Medium';
+        document.getElementById('School_Type').value = 'Public';
+        document.getElementById('Peer_Influence').value = 'Neutral';
+        document.getElementById('Internet_Access').value = 'Yes';
+        document.getElementById('Extracurricular_Activities').value = 'No';
+        document.getElementById('Learning_Disabilities').value = 'No';
+        document.getElementById('Distance_from_Home').value = 'Moderate';
+    } else if (type === 'low') {
+        document.getElementById('Attendance').value = 64;
+        document.getElementById('Hours_Studied').value = 10;
+        document.getElementById('Previous_Scores').value = 58;
+        document.getElementById('Tutoring_Sessions').value = 0;
+        document.getElementById('Sleep_Hours').value = 5;
+        document.getElementById('Physical_Activity').value = 1;
+        document.getElementById('Motivation_Level').value = 'Low';
+        document.getElementById('Parental_Involvement').value = 'Low';
+        document.getElementById('Parental_Education_Level').value = 'High School';
+        document.getElementById('Family_Income').value = 'Low';
+        document.getElementById('Access_to_Resources').value = 'Low';
+        document.getElementById('Teacher_Quality').value = 'Low';
+        document.getElementById('School_Type').value = 'Public';
+        document.getElementById('Peer_Influence').value = 'Negative';
+        document.getElementById('Internet_Access').value = 'No';
+        document.getElementById('Extracurricular_Activities').value = 'No';
+        document.getElementById('Learning_Disabilities').value = 'No';
+        document.getElementById('Distance_from_Home').value = 'Far';
+    }
+}
+
+function resetForm() {
+    loadPreset('medium');
+}
+</script>
+{% endblock %}

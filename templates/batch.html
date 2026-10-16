@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Batch Student Analysis - Predict Roster Performance{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-semibold mb-2">
+                    <i class="fa-solid fa-users"></i> Cohort & Class Diagnostics
+                </div>
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Batch CSV Student Prediction</h1>
+                <p class="text-sm text-slate-600 mt-1 max-w-3xl">
+                    Upload a cohort spreadsheet with student indicators to evaluate an entire class simultaneously. Identifies at-risk students for early academic intervention.
+                </p>
+            </div>
+
+            <!-- Download sample template button -->
+            <div>
+                <a href="{{ url_for('sample_csv') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-300 hover:border-indigo-400 hover:bg-indigo-50/50 text-slate-700 hover:text-indigo-700 text-xs font-bold shadow-sm transition-all">
+                    <i class="fa-solid fa-file-arrow-down text-indigo-600"></i>
+                    <span>Download Sample CSV Template</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Card -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 mb-8">
+        <form action="{{ url_for('batch') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                <!-- File Input -->
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Select Student Roster CSV</label>
+                    <div class="flex items-center justify-center w-full">
+                        <label class="flex flex-col items-center justify-center w-full h-36 border-2 border-slate-300 border-dashed rounded-2xl cursor-pointer bg-slate-50/50 hover:bg-slate-50 transition-all hover:border-indigo-400">
+                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                <i class="fa-solid fa-cloud-arrow-up text-2xl text-indigo-500 mb-2"></i>
+                                <p class="text-xs text-slate-600 font-semibold mb-1">
+                                    <span class="text-indigo-600 underline">Click to upload</span> or drag and drop
+                                </p>
+                                <p class="text-[11px] text-slate-400">Comma-separated values (.csv) with student factor columns</p>
+                                <p id="fileNameDisplay" class="text-xs font-bold text-indigo-600 mt-2 hidden"></p>
+                            </div>
+                            <input type="file" name="csv_file" id="csv_file" accept=".csv" class="hidden" required onchange="handleFileChange(this)">
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Model Choice and Upload Action -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Model Algorithm</label>
+                        <select name="model_choice" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 text-xs font-medium bg-white">
+                            <option value="rf" selected>Random Forest (82.2% Acc - Recommended)</option>
+                            <option value="dt">Decision Tree (72.4% Acc - Baseline)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-200 transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-bolt"></i> Process & Predict Cohort
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Batch Prediction Results View -->
+    {% if has_results %}
+    <div class="space-y-6">
+
+        <!-- Summary Statistics Bar -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Total Evaluated -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                <div class="text-[10px] uppercase font-bold text-slate-500">Total Students Evaluated</div>
+                <div class="text-3xl font-black text-slate-900 mt-1">{{ summary.total }}</div>
+                <div class="text-xs text-slate-500 font-medium mt-1">Processed with {{ summary.model_name }}</div>
+            </div>
+
+            <!-- High Performance -->
+            <div class="bg-white rounded-2xl border border-emerald-200 p-5 shadow-sm bg-gradient-to-br from-emerald-50/50 to-white">
+                <div class="text-[10px] uppercase font-bold text-emerald-700">High Performance (70–101)</div>
+                <div class="text-3xl font-black text-emerald-800 mt-1">{{ summary.high_count }}</div>
+                <div class="text-xs text-emerald-600 font-semibold mt-1">{{ summary.high_pct }}% of Cohort</div>
+            </div>
+
+            <!-- Medium Performance -->
+            <div class="bg-white rounded-2xl border border-amber-200 p-5 shadow-sm bg-gradient-to-br from-amber-50/50 to-white">
+                <div class="text-[10px] uppercase font-bold text-amber-700">Medium Performance (65–69)</div>
+                <div class="text-3xl font-black text-amber-800 mt-1">{{ summary.med_count }}</div>
+                <div class="text-xs text-amber-600 font-semibold mt-1">{{ summary.med_pct }}% of Cohort</div>
+            </div>
+
+            <!-- Low Performance (At Risk) -->
+            <div class="bg-white rounded-2xl border border-rose-200 p-5 shadow-sm bg-gradient-to-br from-rose-50/50 to-white">
+                <div class="text-[10px] uppercase font-bold text-rose-700">Low Performance (At Risk)</div>
+                <div class="text-3xl font-black text-rose-800 mt-1">{{ summary.low_count }}</div>
+                <div class="text-xs text-rose-600 font-semibold mt-1">{{ summary.low_pct }}% Flagged for Support</div>
+            </div>
+        </div>
+
+        <!-- Export Action & Table Container -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h2 class="font-bold text-slate-900 text-base">Predicted Student Roster</h2>
+                    <p class="text-xs text-slate-500">Showing first 100 student predictions with confidence indicators</p>
+                </div>
+                <a href="{{ url_for('download_predictions') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-sm transition-all">
+                    <i class="fa-solid fa-file-excel"></i> Export Annotated CSV (Full Roster)
+                </a>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-600">
+                    <thead class="bg-slate-50 text-[10px] uppercase tracking-wider text-slate-500 border-b border-slate-200 font-bold">
+                        <tr>
+                            <th class="px-4 py-3">#</th>
+                            <th class="px-4 py-3">Predicted Level</th>
+                            <th class="px-4 py-3">Risk Assessment</th>
+                            <th class="px-4 py-3">Attendance</th>
+                            <th class="px-4 py-3">Study Hours</th>
+                            <th class="px-4 py-3">Prev. Score</th>
+                            <th class="px-4 py-3">Tutoring</th>
+                            <th class="px-4 py-3">Confidence Probabilities</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for row in records %}
+                        <tr class="hover:bg-slate-50/80 transition-colors">
+                            <td class="px-4 py-3 font-mono text-[11px] text-slate-400">{{ loop.index }}</td>
+                            <td class="px-4 py-3">
+                                {% if row.Predicted_Performance == 'High' %}
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                        <i class="fa-solid fa-circle-check"></i> High
+                                    </span>
+                                {% elif row.Predicted_Performance == 'Medium' %}
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                                        <i class="fa-solid fa-circle-info"></i> Medium
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">
+                                        <i class="fa-solid fa-triangle-exclamation"></i> Low
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3 font-semibold">
+                                {% if row.Risk_Flag == 'High Risk' %}
+                                    <span class="text-rose-600 font-bold"><i class="fa-solid fa-flag text-rose-500 mr-1"></i> Urgent Intervention</span>
+                                {% elif row.Risk_Flag == 'Moderate' %}
+                                    <span class="text-amber-600"><i class="fa-solid fa-eye text-amber-500 mr-1"></i> Monitor Progress</span>
+                                {% else %}
+                                    <span class="text-emerald-600"><i class="fa-solid fa-thumbs-up text-emerald-500 mr-1"></i> Stable Performance</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3 font-mono font-medium">{{ row.Attendance }}%</td>
+                            <td class="px-4 py-3 font-mono font-medium">{{ row.Hours_Studied }} hrs</td>
+                            <td class="px-4 py-3 font-mono font-medium">{{ row.Previous_Scores }}</td>
+                            <td class="px-4 py-3 font-mono font-medium">{{ row.Tutoring_Sessions }}</td>
+                            <td class="px-4 py-3 text-[11px]">
+                                <span class="text-emerald-700 font-bold">H: {{ row.Prob_High }}%</span> •
+                                <span class="text-amber-700 font-bold">M: {{ row.Prob_Medium }}%</span> •
+                                <span class="text-rose-700 font-bold">L: {{ row.Prob_Low }}%</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function handleFileChange(input) {
+    if (input.files && input.files[0]) {
+        const display = document.getElementById('fileNameDisplay');
+        display.innerText = "Selected: " + input.files[0].name;
+        display.classList.remove('hidden');
+    }
+}
+</script>
+{% endblock %}
